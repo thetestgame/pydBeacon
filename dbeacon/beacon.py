@@ -417,13 +417,13 @@ class InstallationBeacon(dBeacon):
     Represents an Installation Beacon found in the Disney Parks.
     """
 
-    def __init__(self, payload_length: int = 4, unknown1: int = 1, unknown2: int = 1, waypoint_id: int = 1, unknown4: int = 1) -> object:
+    def __init__(self, payload_length: int = 4, unknown1: int = 1, unknown2: int = 1, waypoint_id: int = 1, minimmum_rssi: int = -95) -> object:
         super().__init__(BeaconDeviceTypes.InstallationBeacon, payload_length)
 
         self._unknown1 = unknown1
         self._unknown2 = unknown2
         self._waypoint_id = waypoint_id
-        self._unknown4 = unknown4
+        self._minimmum_rssi = minimmum_rssi
 
     @property
     def unknown1(self) -> int:
@@ -450,12 +450,12 @@ class InstallationBeacon(dBeacon):
         return self._waypoint_id
     
     @property
-    def unknown4(self) -> int:
+    def minimmum_rssi(self) -> int:
         """
-        Getter for the fourth unknown field.
+        Getter for minimum RSSI
         """
 
-        return self._unknown4
+        return self._minimmum_rssi
     
     def _decode_beacon_type_payload(self, data: str) -> None:
         """
@@ -465,7 +465,7 @@ class InstallationBeacon(dBeacon):
         self._unknown1 = utils.hex_to_int(data[:2])
         self._unknown2 = utils.hex_to_int(data[2:4])
         self._waypoint_id = utils.hex_to_int(data[4:6])
-        self._unknown4 = utils.hex_to_int(data[6:8])
+        self._minimmum_rssi = utils.hex_to_dbm(data[6:8])
 
     def _get_fields_with_names(self) -> list:
         """
@@ -476,7 +476,7 @@ class InstallationBeacon(dBeacon):
             "Unknown1": self.unknown1,
             "Unknown2": self.unknown2,
             "WaypointId": self.waypoint_id,
-            "Unknown4": self.unknown4
+            "MinimumRSSI": self._minimmum_rssi
         }
 
 # ------------------------------------------------------------------------------------------------------- #
