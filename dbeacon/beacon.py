@@ -303,7 +303,7 @@ class DroidIdentificationBeacon(dBeacon):
         Getter for whether the droid is paired.
         """
 
-        return self.droid_paired
+        return self._droid_paired
     
     @property
     def affiliation_id(self) -> int:

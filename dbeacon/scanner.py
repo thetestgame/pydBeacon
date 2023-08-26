@@ -30,6 +30,9 @@ class DBeaconScanner(object):
         Adds a handler for a specific beacon type
         """
 
+        if isinstance(beacon_type, beacon.BeaconDeviceTypes):
+            beacon_type = beacon_type.value
+
         if beacon_type not in self.__beacon_handlers:
             self.__beacon_handlers[beacon_type] = []
 
@@ -39,6 +42,9 @@ class DBeaconScanner(object):
         """
         Removes a handler for a specific beacon type
         """
+
+        if isinstance(beacon_type, beacon.BeaconDeviceTypes):
+            beacon_type = beacon_type.value
 
         if beacon_type not in self.__beacon_handlers:
             return
@@ -69,10 +75,11 @@ class DBeaconScanner(object):
                             if decoded_beacon is None:
                                 continue
 
+                            logging.debug('Found dBeacon: %s' % decoded_beacon)
                             if decoded_beacon.device_type not in visible_beacons:
                                 visible_beacons[decoded_beacon.device_type] = []
 
-                            visible_beacons[decoded_beacon.device_type].append(decoded_beacon)
+                            visible_beacons[decoded_beacon.device_type].append((device_address, decoded_beacon))
                     except Exception as e:
                         logging.error('An unexpected error occured processing bluetooth device: %s' % device_address)
                         logging.error(e, exc_info=True) 
@@ -82,6 +89,7 @@ class DBeaconScanner(object):
                         for handler in self.__beacon_handlers[device_type]:
                             await handler(visible_beacons[device_type])
 
+                scanner.discovered_devices_and_advertisement_data.clear()
                 await asyncio.sleep(2)
 
     def __start_scan_loop(self, loop: asyncio.AbstractEventLoop) -> None:
