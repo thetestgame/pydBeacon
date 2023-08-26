@@ -201,6 +201,7 @@ class dBeacon(Beacon):
     @property
     def device_type(self) -> int:
         """
+        Getter for the device type.
         """
 
         return self._device_type
@@ -208,6 +209,7 @@ class dBeacon(Beacon):
     @property
     def payload_length(self) -> int:
         """
+        Getter for the payload length.
         """
 
         return self._payload_length
@@ -298,6 +300,7 @@ class DroidIdentificationBeacon(dBeacon):
     @property
     def droid_paired(self) -> bool:
         """
+        Getter for whether the droid is paired.
         """
 
         return self.droid_paired
@@ -305,6 +308,7 @@ class DroidIdentificationBeacon(dBeacon):
     @property
     def affiliation_id(self) -> int:
         """
+        Getter for the affiliation id.
         """
 
         return self._affiliation_id
@@ -312,6 +316,7 @@ class DroidIdentificationBeacon(dBeacon):
     @property
     def personality_id(self) -> int:
         """
+        Getter for the personality id.
         """
 
         return self._personality_id
@@ -343,17 +348,18 @@ class LocationBeacon(dBeacon):
     Represents a Location Beacon found in the Disney Parks.
     """
 
-    def __init__(self, payload_length: int = 4, location_id: int = 1, reaction_interval: int = 30, signal_strength: int = 30, droid_paired: bool = False) -> object:
+    def __init__(self, payload_length: int = 4, location_id: int = 1, reaction_interval: int = 30, minimum_rssi: int = 30, droid_paired: bool = False) -> object:
         super().__init__(BeaconDeviceTypes.LocationBeacon, payload_length)
 
         self._location_id = location_id
         self._reaction_interval = reaction_interval
-        self._signal_strength = signal_strength
+        self._minimum_rssi = minimum_rssi
         self._droid_paired = droid_paired
 
     @property
     def location_id(self) -> int:
         """
+        Getter for the location id.
         """
 
         return self._location_id
@@ -361,20 +367,23 @@ class LocationBeacon(dBeacon):
     @property
     def reaction_interval(self) -> int:
         """
+        Getter for the reaction interval.
         """
 
         return self._reaction_interval
     
     @property
-    def signal_strength(self) -> int:
+    def minimum_rssi(self) -> int:
         """
+        Getter for the minimum RSSI.
         """
 
-        return self._signal_strength
+        return self._minimum_rssi
     
     @property
     def droid_paired(self) -> bool:
         """
+        Getter for whether the droid is paired.
         """
 
         return self._droid_paired
@@ -386,7 +395,7 @@ class LocationBeacon(dBeacon):
 
         self._location_id = utils.hex_to_int(data[:2])
         self._reaction_interval = utils.hex_to_int(data[2:4])
-        self._signal_strength = utils.hex_to_dbm(data[4:6])
+        self._minimum_rssi = utils.hex_to_dbm(data[4:6])
         self._droid_paired = utils.hex_to_int(data[6:8]) == 1
 
     def _get_fields_with_names(self) -> list:
@@ -397,14 +406,124 @@ class LocationBeacon(dBeacon):
         return { 
             "LocationId": self.location_id,
             "ReactionInterval": self.reaction_interval,
-            "SignalStrength": self.signal_strength,
+            "MinimumRSSI": self.minimum_rssi,
             "DroidPaired": self.droid_paired
         }
 
 # ------------------------------------------------------------------------------------------------------- #
 
+class InstallationBeacon(dBeacon):
+    """
+    Represents an Installation Beacon found in the Disney Parks.
+    """
+
+    def __init__(self, payload_length: int = 4, unknown1: int = 1, unknown2: int = 1, waypoint_id: int = 1, unknown4: int = 1) -> object:
+        super().__init__(BeaconDeviceTypes.InstallationBeacon, payload_length)
+
+        self._unknown1 = unknown1
+        self._unknown2 = unknown2
+        self._waypoint_id = waypoint_id
+        self._unknown4 = unknown4
+
+    @property
+    def unknown1(self) -> int:
+        """
+        Getter for the first unknown field.
+        """
+
+        return self._unknown1
+    
+    @property
+    def unknown2(self) -> int:
+        """
+        Getter for the second unknown field.
+        """
+
+        return self._unknown2
+    
+    @property
+    def waypoint_id(self) -> int:
+        """
+        Getter for the waypoint id.
+        """
+
+        return self._waypoint_id
+    
+    @property
+    def unknown4(self) -> int:
+        """
+        Getter for the fourth unknown field.
+        """
+
+        return self._unknown4
+    
+    def _decode_beacon_type_payload(self, data: str) -> None:
+        """
+        Decodes the data from a specific type of BLE beacon.
+        """ 
+
+        self._unknown1 = utils.hex_to_int(data[:2])
+        self._unknown2 = utils.hex_to_int(data[2:4])
+        self._waypoint_id = utils.hex_to_int(data[4:6])
+        self._unknown4 = utils.hex_to_int(data[6:8])
+
+    def _get_fields_with_names(self) -> list:
+        """
+        Returns a list of fields with their names.
+        """
+
+        return { 
+            "Unknown1": self.unknown1,
+            "Unknown2": self.unknown2,
+            "WaypointId": self.waypoint_id,
+            "Unknown4": self.unknown4
+        }
+
+# ------------------------------------------------------------------------------------------------------- #
+
+class UnknownBeacon(dBeacon):
+    """
+    Represents an Unknown Beacon found in the Disney Parks.
+    """
+
+    def __init__(self, device_type: int = 1, payload_length: int = 4, fields: list = []) -> object:
+        super().__init__(device_type, payload_length)
+
+        self._fields = fields
+
+    @property
+    def fields(self) -> list:
+        """
+        Getter for the fields associated with the unknown beacon.
+        """
+
+        return self._fields
+    
+    def _decode_beacon_type_payload(self, data: str) -> None:
+        """
+        Decodes the data from a specific type of BLE beacon.
+        """ 
+
+        self._fields = []
+        for field_id in range(0, self.payload_length):
+            self._fields.append(utils.hex_to_int(data[field_id * 2:(field_id * 2) + 2]))
+
+    def _get_fields_with_names(self) -> list:
+        """
+        Returns a list of fields with their names.
+        """
+
+        fields = {}
+        for field_id in range(1, len(self.fields) + 1):
+            fields["Unknown%s" % field_id] = self.fields[field_id - 1]
+
+        return fields
+
+# ------------------------------------------------------------------------------------------------------- #
+
 def decode_dbeacon(data: str) -> object:
     """
+    Decodes a dBeacon from the given data.
     """
 
     device_type = utils.hex_to_int(data[:2])
@@ -412,7 +531,9 @@ def decode_dbeacon(data: str) -> object:
         return DroidIdentificationBeacon.decode_beacon(data)
     elif device_type == BeaconDeviceTypes.LocationBeacon.value:
         return LocationBeacon.decode_beacon(data)
+    elif device_type == BeaconDeviceTypes.InstallationBeacon.value:
+        return InstallationBeacon.decode_beacon(data)
     else:
-        logging.warning("Unknown beacon type: %s" % device_type)
+        return UnknownBeacon.decode_beacon(data)
 
 # ------------------------------------------------------------------------------------------------------- #
