@@ -1,3 +1,5 @@
+<img src=".github/icon.png" align="right" width="100">
+
 # PydBeacon
 
 PydBeacon is an open-source project that aims to provide Python decode/encode capabilities for Disney's dBeacon technology found in Disney parks. This library was originally written for developing technologies for communicating with the Starwars droid that can be purchased from Starwars Galaxy's Edge.
